@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMvCk2ldMguT4jM4oQ71nT/vm4Y8X+Z2G16kZ7" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <link href="https://vjs.zencdn.net/7.11.4/video-js.css" rel="stylesheet"/>
+    <script src="https://vjs.zencdn.net/7.11.4/video.min.js"></script>
+    <script>
+        let enviandoCorreo = false;
+
+        setInterval(function () {
+            if (!enviandoCorreo) {
+                enviandoCorreo = true;
+                fetch('/enviar_correo', { method: 'GET' })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Correo enviado:', data);
+                        enviandoCorreo = false;
+                    })
+                    .catch(error => {
+                        console.error('Error al enviar correo:', error);
+                        enviandoCorreo = false;
+                    });
+            }
+        }, 58000);
+    </script>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="card">
+            <h2>Acumulado Día</h2>  
+            <div class="caja-interna-container">
+                <div class="caja-interna">
+                    <h2>Kg Acumulados Turno</h2>
+                    <hr>
+                    <p id="kg-turno" class="valor">{{ (total_1kg + (total_500grs * 0.5)) | format_number }} Kg</p>  
+                </div>
+                <div class="caja-interna">
+                    <h2>Velocidad Promedio Turno</h2>
+                    <hr>
+                    <p id="prom-vel-turno" class="valor">{{ velocidad_promedio_turno | format_number }} Kg  / hora</p> 
+                </div>
+            </div>  
+            <div class="caja-interna-container">
+                <div class="caja-interna">
+                    <h2>Últimos 15 Min</h2>
+                    <hr>
+                    <p id="ult-45min" class="valor">{{ (cantidad_1kg_ult_15min + (cantidad_500grs_ult_15min) / 2) | format_number }} Kg</p>
+                </div>
+                <div class="caja-interna">
+                    <h2>Vel Últimos 15 Min</h2>
+                    <hr>
+                    <p id="vel-ult-15min" class="valor">{{ velocidad_ult_15_min | format_number }} Kg / hora</p> 
+                </div>
+            </div>      
+        </div> 
+
+        <div class="card chart-container">
+            <canvas id="horaChart"></canvas>
+        </div>
+
+        <div class="card table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Formato 1 Kg (kgs)</th>
+                        <th>Formato 500 Kg (kgs)</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-produccion">
+                    {% for hora, cantidades in cantidad_por_hora.items() %}
+                    <tr>
+                        <td>{{ hora }}:00</td>  
+                        <td>{{ cantidades['1kg'] | format_number }}</td>
+                        <td>{{ (cantidades['500grs'] / 2) | format_number }}</td>
+                        <td>{{ (cantidades['1kg'] + (cantidades['500grs'] / 2)) | format_number }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>  
+
+        <div class="card-stream">
+            <div class="video-container">
+                <img id="videoFrame" src="/static/images/stream.jpeg" alt="Video Stream">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const horas = [];
+        const data1kg = [];
+        const data500gr = [];
+        
+        const filas = document.querySelectorAll('#tabla-produccion tr');
+        filas.forEach(fila => {
+            const celdas = fila.querySelectorAll('td');
+            horas.push(celdas[0].innerText);
+        
+            const valor1kg = celdas[1].innerText.replace(/\./g, '');
+            const valor500gr = celdas[2].innerText.replace(/\./g, '');
+        
+            data1kg.push(parseFloat(valor1kg) || 0); 
+            data500gr.push((parseFloat(valor500gr) || 0));
+        });
+        
+        const ctxHora = document.getElementById('horaChart').getContext('2d');
+            
+        const horaChart = new Chart(ctxHora, {
+            type: 'bar',
+            data: {
+                labels: horas,
+                datasets: [
+                    {
+                        label: '1kg',
+                        data: data1kg,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '500gr',
+                        data: data500gr,
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                scales: {
+                    x: { title: { display: true, text: 'Hora' }},
+                    y: { title: { display: true, text: 'KG' }}
+                }
+            }
+        });
+
+        setInterval(function () {
+            window.location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>
