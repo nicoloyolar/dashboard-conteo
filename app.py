@@ -48,14 +48,11 @@ def enviar_correo_periodico():
     try:
         global ultima_hora_enviada
         
-        # Obtener hora y minuto actuales
         hora_actual = datetime.now()
         minuto_actual = hora_actual.minute
         hora_actual_simple = hora_actual.hour
 
-        # Solo enviar si es minuto 59 o cambio de hora y no se ha enviado aún
         if minuto_actual == 59 and hora_actual_simple != ultima_hora_enviada:
-            # Recuperar datos de la última hora
             datos_ultima_hora = fetch_por_hora()
 
             cantidad_por_hora = {}
@@ -72,15 +69,13 @@ def enviar_correo_periodico():
                 elif peso == '500grs':
                     cantidad_por_hora[hora]['500grs'] += cantidad
 
-            estancamientos = 0  # Aquí podrías agregar lógica si tienes datos de estancamientos
+            estancamientos = 0  
 
-            # Generar HTML y enviar correo
             tabla_html, mensaje_whatsapp = generar_tabla_html_y_mensaje(
                 cantidad_por_hora=cantidad_por_hora,
                 estancamientos=estancamientos
             )
 
-            # Enviar el correo
             enviar_correo(
                 asunto="Reporte Conteo Productos",
                 cuerpo_html=tabla_html,
@@ -88,7 +83,6 @@ def enviar_correo_periodico():
                 cc=["desarrollosti@standrews.cl"]
             )
 
-            # Actualizar la hora enviada para evitar duplicados
             ultima_hora_enviada = hora_actual_simple
 
             return jsonify({'status': 'Correo enviado exitosamente'}), 200
@@ -97,7 +91,6 @@ def enviar_correo_periodico():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/')
 def home():
