@@ -70,11 +70,37 @@ def fetch_por_hora():
             [dbo].[ConteoProductos]
         WHERE 
             CONVERT(DATE, Fecha) = CONVERT(DATE, GETDATE())  
-            AND DATEPART(HOUR, Fecha) BETWEEN 00 AND 24
+            AND DATEPART(HOUR, Fecha) BETWEEN 00 AND 23
         GROUP BY 
             Etiqueta, DATEPART(HOUR, Fecha)
         ORDER BY 
             Hora
+    """
+    return execute_query(query, fetch=True)
+
+def fetch_turno_noche():
+    """
+    Obtiene la suma de productos por formato (1kg y 500grs) durante el turno de noche (00:00 - 07:59).
+    """
+    query = """
+        SELECT 
+            Etiqueta, 
+            SUM(Cantidad) AS Cantidad
+        FROM 
+            (
+                SELECT 
+                    COUNT(*) AS Cantidad, 
+                    Etiqueta
+                FROM 
+                    [dbo].[ConteoProductos]
+                WHERE 
+                    CONVERT(DATE, Fecha) = CONVERT(DATE, GETDATE())  
+                    AND DATEPART(HOUR, Fecha) BETWEEN 0 AND 7
+                GROUP BY 
+                    Etiqueta, DATEPART(HOUR, Fecha)
+            ) AS Subquery
+        GROUP BY 
+            Etiqueta
     """
     return execute_query(query, fetch=True)
 

@@ -31,6 +31,10 @@
     </script>
 </head>
 <body>
+    <header class="dashboard-header">
+        <h1>Dashboard Quemchi Entero</h1>
+    </header>
+    
     <div class="dashboard">
         <div class="card">
             <h2>Acumulado Día</h2>  
@@ -43,9 +47,20 @@
                 <div class="caja-interna">
                     <h2>Velocidad Promedio Turno</h2>
                     <hr>
-                    <p id="prom-vel-turno" class="valor">{{ velocidad_promedio_turno | format_number }} Kg  / hora</p> 
+                    <p id="prom-vel-turno" class="valor">{{ velocidad_promedio_turno | format_number }} Kg/hora</p> 
+                </div>
+                <div class="caja-interna">
+                    <h2>Producción Total Día</h2>
+                    <hr>
+                    <p id="total-dia" class="valor">{{ produccion_total_dia | format_number }} Kg</p>
+                </div>
+                <div class="caja-interna">
+                    <h2>Eficiencia del Turno</h2>
+                    <hr>
+                    <p class="valor">{{ produccion_total_dia | format_number }}%</p> 
                 </div>
             </div>  
+    
             <div class="caja-interna-container">
                 <div class="caja-interna">
                     <h2>Últimos 15 Min</h2>
@@ -55,15 +70,25 @@
                 <div class="caja-interna">
                     <h2>Vel Últimos 15 Min</h2>
                     <hr>
-                    <p id="vel-ult-15min" class="valor">{{ velocidad_ult_15_min | format_number }} Kg / hora</p> 
+                    <p id="vel-ult-15min" class="valor">{{ velocidad_ult_15_min | format_number }} Kg/hora</p> 
+                </div>
+                <div class="caja-interna">
+                    <h2>Meta de Producción</h2>
+                    <hr>
+                    <p id="meta-produccion" class="valor">{{ meta_produccion | format_number }} Kg</p>
+                </div>
+                <div class="caja-interna">
+                    <h2>Diferencia con Meta</h2>
+                    <hr>
+                    <p id="diferencia-meta" class="valor">{{ (produccion_total_dia - meta_produccion) | format_number }} Kg</p>
                 </div>
             </div>      
         </div> 
-
+    
         <div class="card chart-container">
             <canvas id="horaChart"></canvas>
         </div>
-
+    
         <div class="card table-container">
             <table>
                 <thead>
@@ -86,14 +111,8 @@
                 </tbody>
             </table>
         </div>  
-
-        <div class="card-stream">
-            <div class="video-container">
-                <img id="videoFrame" src="/static/images/stream.jpeg" alt="Video Stream">
-            </div>
-        </div>
     </div>
-
+    
     <script>
         const horas = [];
         const data1kg = [];

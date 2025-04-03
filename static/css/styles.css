@@ -202,3 +202,24 @@ tr:hover {
     max-width: 100%;
 }
 
+.dashboard-header {
+    width: 100%; 
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    text-align: center;
+    padding: 15px 0; 
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 0; 
+    margin: 0;
+    position: fixed; 
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+body {
+    padding-top: 60px;
+}
+

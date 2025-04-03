@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from flask import Flask, render_template, request
 from flask import Flask, request, jsonify
 from datetime import datetime
-from database import logger, insertar_conteo, fetch_por_hora, fetch_total_ultimo_dia, fetch_ult_15_min, fetch_ult_45_min
-from send_mail import enviar_correo, enviar_mensaje_whatsapp, generar_tabla_html_y_mensaje
+from database import logger, insertar_conteo, fetch_por_hora, fetch_total_ultimo_dia, fetch_ult_15_min, fetch_ult_45_min, fetch_turno_noche
+from send_mail import enviar_correo, enviar_mensaje_whatsapp, generar_resumen_turno_noche, generar_tabla_html_y_mensaje
 from utils import format_number
 
 cantidad_por_hora = {i: {'1kg': 0, '500grs': 0, 'estancamiento': 0, 'total': 0} for i in range(24)}
@@ -46,14 +46,21 @@ ultima_hora_enviada = None
 @app.route('/enviar_correo', methods=['GET'])
 def enviar_correo_periodico():
     try:
-        global ultima_hora_enviada
+        global ultima_hora_enviada, ultimo_resumen_enviado
         
         hora_actual = datetime.now()
         minuto_actual = hora_actual.minute
         hora_actual_simple = hora_actual.hour
+        dia_semana = hora_actual.weekday()  
+
+        if dia_semana >= 5 or not (8 <= hora_actual_simple <= 18):
+            return jsonify({'status': 'Fuera de horario o día no permitido para envío'}), 200
 
         if minuto_actual == 59 and hora_actual_simple != ultima_hora_enviada:
+            ultima_hora_enviada = hora_actual_simple  
+
             datos_ultima_hora = fetch_por_hora()
+            datos_turno_noche = fetch_turno_noche()
 
             cantidad_por_hora = {}
             for row in datos_ultima_hora:
@@ -83,9 +90,32 @@ def enviar_correo_periodico():
                 cc=["desarrollosti@standrews.cl"]
             )
 
-            ultima_hora_enviada = hora_actual_simple
+        if hora_actual_simple == 8 and minuto_actual == 00: 
+            datos_turno_noche = fetch_turno_noche()
+            print("Datos turno noche:", datos_turno_noche)
 
-            return jsonify({'status': 'Correo enviado exitosamente'}), 200
+            total_kilos = 0
+
+            for row in datos_turno_noche:
+                peso = row[0]  
+                cantidad = row[1]  
+
+                if peso == '1kg':
+                    total_kilos += cantidad
+                elif peso == '500grs':
+                    total_kilos += cantidad / 2  
+
+            html_resumen, mensaje_whatsapp = generar_resumen_turno_noche(total_kilos, estancamientos=0)
+
+            enviar_correo(
+                asunto="Resumen Turno Noche",
+                cuerpo_html=html_resumen,
+                destinatarios=["nicolas.iloyolar@gmail.com", "sanmaglass@gmail.com", "afaundez@standrews.cl"],
+                cc=["desarrollosti@standrews.cl"]
+            )
+
+            return jsonify({'status': 'Correo turno noche enviado exitosamente'}), 200
+
         else:
             return jsonify({'status': 'No es el minuto 59 o correo ya enviado para esta hora.'}), 200
 

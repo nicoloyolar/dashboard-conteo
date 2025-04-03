@@ -6,12 +6,14 @@ from email.mime.text import MIMEText
 from twilio.rest import Client
 import os
 
+from database import fetch_turno_noche
+
 def enviar_correo(asunto, cuerpo_html, destinatarios, cc=None):
     """Envía correos mediante el protocolo SMTP"""
     smtp_server     = "smtp.office365.com"
     smtp_port       = 587
     smtp_username   = "desarrollosti@standrews.cl"
-    smtp_password   = "Riesco5711@" 
+    smtp_password   = "Desarrollos2025#$%" 
 
     msg = MIMEMultipart()
     msg['From']     = smtp_username
@@ -95,3 +97,26 @@ def enviar_mensaje_whatsapp(mensaje_body):
 
     except Exception as e:
         print("Error al enviar el mensaje de WhatsApp:", e)
+    
+def generar_resumen_turno_noche(total_kilos, estancamientos):
+
+    html = f"""
+    <h2>Resumen del Turno de Noche (00:00 - 07:59)</h2>
+    <table border="1">
+        <tr>
+            <th>Total Producción (kgs)</th>
+        </tr>
+        <tr>
+            <td>{total_kilos:.2f} kg</td>
+        </tr>
+    </table>
+    <p><strong>Estancamientos:</strong> {estancamientos}</p>
+    """
+
+    mensaje_whatsapp = f"""
+    Resumen del Turno de Noche (00:00 - 07:59)
+    Total Producción: {total_kilos:.2f} kg
+    Estancamientos: {estancamientos}
+    """
+
+    return html, mensaje_whatsapp
