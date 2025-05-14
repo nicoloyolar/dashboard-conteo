@@ -1,20 +1,22 @@
 from datetime import datetime
-from flask import Flask, render_template, request
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 from datetime import datetime
 from database import logger, insertar_conteo, fetch_por_hora, fetch_total_ultimo_dia, fetch_ult_15_min, fetch_ult_45_min, fetch_turno_noche
-from send_mail import enviar_correo, enviar_mensaje_whatsapp, generar_resumen_turno_noche, generar_tabla_html_y_mensaje
+from send_mail import enviar_correo, generar_resumen_turno_noche, generar_tabla_html_y_mensaje
 from utils import format_number
 
 cantidad_por_hora = {i: {'1kg': 0, '500grs': 0, 'estancamiento': 0, 'total': 0} for i in range(24)}
 ultima_hora_envio = None
+ultimo_envio_minuto = None
+ultima_hora_enviada = None
 
 app = Flask(__name__)
+
 app.template_filter('format_number')(format_number)
 
 @app.route('/api/actualizar_conteo', methods=['POST'])
 def actualizar_conteo():
-    """Actualiza el conteo e inyecta los datos en la base de datos y envía un correo de resumen."""
+    """Actualiza el conteo e inyecta los datos en la base de datos"""
     
     try:
         data            = request.get_json()
@@ -38,10 +40,6 @@ def actualizar_conteo():
     except Exception as e:
         logger.error(f"Error: {e}")
         return jsonify({'error': 'Error al procesar la solicitud'}), 400
-
-ultimo_envio_minuto = None
-
-ultima_hora_enviada = None
 
 @app.route('/enviar_correo', methods=['GET'])
 def enviar_correo_periodico():
@@ -78,7 +76,7 @@ def enviar_correo_periodico():
 
             estancamientos = 0  
 
-            tabla_html, mensaje_whatsapp = generar_tabla_html_y_mensaje(
+            tabla_html = generar_tabla_html_y_mensaje(
                 cantidad_por_hora=cantidad_por_hora,
                 estancamientos=estancamientos
             )
@@ -105,7 +103,7 @@ def enviar_correo_periodico():
                 elif peso == '500grs':
                     total_kilos += cantidad / 2  
 
-            html_resumen, mensaje_whatsapp = generar_resumen_turno_noche(total_kilos, estancamientos=0)
+            html_resumen = generar_resumen_turno_noche(total_kilos, estancamientos=0)
 
             enviar_correo(
                 asunto="Resumen Turno Noche",

@@ -1,0 +1,28 @@
+# 📦 Aplicación Web de Conteo de Producción
+
+## Funcionalidad General
+
+Esta app permite registrar y visualizar el conteo de productos empacados en dos tipos (`1kg` y `500grs`) a lo largo del día. Además, envía reportes automáticos por correo electrónico.
+
+### Endpoints
+
+- **`POST /api/actualizar_conteo`**
+  - Recibe un JSON con:
+    - `p_c_1kg` (int): cantidad de productos 1kg
+    - `p_c_500grs` (int): cantidad de productos 500grs
+    - `timestamp` (ISO-8601): fecha y hora del evento
+
+- **`GET /enviar_correo`**
+  - Envía un correo si son las 08:00 o el minuto 59 de una hora hábil.
+  - Genera resumen de datos por hora y por turno nocturno.
+
+- **`GET /`**
+  - Página principal con resumen gráfico de los conteos, velocidades y métricas del día.
+
+## Archivos principales
+
+- `app.py`: archivo principal con rutas y lógica de control.
+- `database.py`: contiene funciones de acceso a la base de datos.
+- `send_mail.py`: contiene funciones para formateo de mensajes y envío de correos/WhatsApp.
+- `utils.py`: contiene funciones de formato auxiliar.
+

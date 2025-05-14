@@ -29,6 +29,7 @@ def enviar_correo(asunto, cuerpo_html, destinatarios, cc=None):
 
     try:
         with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.set_debuglevel(1)
             server.starttls()  
             server.login(smtp_username, smtp_password)
             server.sendmail(smtp_username, to_addresses, msg.as_string())
@@ -70,7 +71,7 @@ def generar_tabla_html_y_mensaje(cantidad_por_hora, estancamientos):
     Total: {total_actual:.2f} kg
     Estancamientos: {estancamientos}
     """
-    return html, mensaje_whatsapp
+    return html
 
 def enviar_mensaje_whatsapp(mensaje_body):
     try:
@@ -119,4 +120,4 @@ def generar_resumen_turno_noche(total_kilos, estancamientos):
     Estancamientos: {estancamientos}
     """
 
-    return html, mensaje_whatsapp
+    return html

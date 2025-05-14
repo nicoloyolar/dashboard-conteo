@@ -34,83 +34,63 @@
     <header class="dashboard-header">
         <h1>Dashboard Quemchi Entero</h1>
     </header>
-    
-    <div class="dashboard">
-        <div class="card">
-            <h2>Acumulado Día</h2>  
-            <div class="caja-interna-container">
-                <div class="caja-interna">
-                    <h2>Kg Acumulados Turno</h2>
-                    <hr>
-                    <p id="kg-turno" class="valor">{{ (total_1kg + (total_500grs * 0.5)) | format_number }} Kg</p>  
-                </div>
-                <div class="caja-interna">
-                    <h2>Velocidad Promedio Turno</h2>
-                    <hr>
-                    <p id="prom-vel-turno" class="valor">{{ velocidad_promedio_turno | format_number }} Kg/hora</p> 
-                </div>
-                <div class="caja-interna">
-                    <h2>Producción Total Día</h2>
-                    <hr>
-                    <p id="total-dia" class="valor">{{ produccion_total_dia | format_number }} Kg</p>
-                </div>
-                <div class="caja-interna">
-                    <h2>Eficiencia del Turno</h2>
-                    <hr>
-                    <p class="valor">{{ produccion_total_dia | format_number }}%</p> 
-                </div>
-            </div>  
-    
-            <div class="caja-interna-container">
-                <div class="caja-interna">
-                    <h2>Últimos 15 Min</h2>
-                    <hr>
-                    <p id="ult-45min" class="valor">{{ (cantidad_1kg_ult_15min + (cantidad_500grs_ult_15min) / 2) | format_number }} Kg</p>
-                </div>
-                <div class="caja-interna">
-                    <h2>Vel Últimos 15 Min</h2>
-                    <hr>
-                    <p id="vel-ult-15min" class="valor">{{ velocidad_ult_15_min | format_number }} Kg/hora</p> 
-                </div>
-                <div class="caja-interna">
-                    <h2>Meta de Producción</h2>
-                    <hr>
-                    <p id="meta-produccion" class="valor">{{ meta_produccion | format_number }} Kg</p>
-                </div>
-                <div class="caja-interna">
-                    <h2>Diferencia con Meta</h2>
-                    <hr>
-                    <p id="diferencia-meta" class="valor">{{ (produccion_total_dia - meta_produccion) | format_number }} Kg</p>
-                </div>
-            </div>      
-        </div> 
-    
-        <div class="card chart-container">
-            <canvas id="horaChart"></canvas>
+
+    <div class="dashboard-container"> 
+        <div class="left-column">
+            <div class="card">
+                <div class="caja-interna-container">
+                    <div class="caja-interna">
+                        <h2>Kg Acumulados Turno</h2>
+                        <hr>
+                        <p id="kg-turno" class="valor">{{ (total_1kg + (total_500grs * 0.5)) | format_number }} Kg</p>  
+                    </div>
+                    <div class="caja-interna">
+                        <h2>Velocidad Promedio Turno</h2>
+                        <hr>
+                        <p id="prom-vel-turno" class="valor">{{ velocidad_promedio_turno | format_number }} Kg/hora</p> 
+                    </div>
+                    <div class="caja-interna">
+                        <h2>Últimos 15 Min</h2>
+                        <hr>
+                        <p id="ult-45min" class="valor">{{ (cantidad_1kg_ult_15min + (cantidad_500grs_ult_15min) / 2) | format_number }} Kg</p>
+                    </div>
+                    <div class="caja-interna">
+                        <h2>Vel Últimos 15 Min</h2>
+                        <hr>
+                        <p id="vel-ult-15min" class="valor">{{ velocidad_ult_15_min | format_number }} Kg/hora</p> 
+                    </div>
+                </div>      
+            </div>
+
+            <div class="card chart-container">
+                <canvas id="horaChart"></canvas>
+            </div>
         </div>
-    
-        <div class="card table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Hora</th>
-                        <th>Formato 1 Kg (kgs)</th>
-                        <th>Formato 500 Kg (kgs)</th>
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-produccion">
-                    {% for hora, cantidades in cantidad_por_hora.items() %}
-                    <tr>
-                        <td>{{ hora }}:00</td>  
-                        <td>{{ cantidades['1kg'] | format_number }}</td>
-                        <td>{{ (cantidades['500grs'] / 2) | format_number }}</td>
-                        <td>{{ (cantidades['1kg'] + (cantidades['500grs'] / 2)) | format_number }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>  
+
+        <div class="right-column">
+            <div class="card table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Formato 1 Kg (kgs)</th>
+                            <th>Formato 500 Kg (kgs)</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-produccion">
+                        {% for hora in range(24) %}
+                        <tr>
+                            <td>{{ '%02d' % hora }}:00</td>
+                            <td>{{ cantidad_por_hora[hora]['1kg'] | format_number if hora in cantidad_por_hora else '0' }}</td>
+                            <td>{{ (cantidad_por_hora[hora]['500grs'] / 2) | format_number if hora in cantidad_por_hora else '0' }}</td>
+                            <td>{{ (cantidad_por_hora[hora]['1kg'] + (cantidad_por_hora[hora]['500grs'] / 2)) | format_number if hora in cantidad_por_hora else '0' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
     
     <script>
